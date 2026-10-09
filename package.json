@@ -1,6 +1,6 @@
 {
   "name": "desktop-calendar-memo",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Desktop Calendar Memo - Apple Notes inspired offline calendar and memo",
   "main": "main.js",
   "feedbackUrl": "https://app.notion.com/p/boriboris2alll/bf2be401924c46ee87f6965ac6454ceb?pvs=106",
@@ -32,6 +32,31 @@
     "win": {
       "target": "nsis",
       "artifactName": "DesktopCalendarMemo_v${version}.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "icon": "assets/calendar-icon.png",
+      "category": "public.app-category.productivity",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "artifactName": "DesktopCalendarMemo_v${version}_mac.${ext}"
+    },
+    "dmg": {
+      "title": "Desktop Calendar Memo",
+      "artifactName": "DesktopCalendarMemo_v${version}_mac.${ext}"
     },
     "icon": "assets/calendar-icon.ico",
     "artifactName": "DesktopCalendarMemo_v${version}.${ext}",

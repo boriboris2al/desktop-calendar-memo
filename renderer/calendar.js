@@ -339,12 +339,19 @@ editor.addEventListener('mousedown',e=>{
   e.preventDefault();
   line.dataset.checked=line.dataset.checked==='true'?'false':'true';
 });
+// 맥에서는 Ctrl 대신 ⌘(Command) 키로 단축키를 씁니다.
+const IS_MAC=/Mac/.test(navigator.userAgent);
+const modKey=e=>IS_MAC?e.metaKey:e.ctrlKey;
+if(IS_MAC){
+  document.querySelectorAll('kbd').forEach(k=>{if(k.textContent==='Ctrl')k.textContent='⌘'});
+  document.querySelectorAll('[title*="Ctrl+"]').forEach(el=>{el.title=el.title.replace(/Ctrl\+/g,'⌘')});
+}
 editor.addEventListener('keydown',e=>{
   if(e.isComposing||e.keyCode===229)return;
   const k=e.key.toLowerCase();
-  if(e.ctrlKey&&e.shiftKey&&k==='x'){e.preventDefault();execInline('strikeThrough');syncToolbarState();return}
-  if(e.ctrlKey&&e.shiftKey&&k==='c'){e.preventDefault();toggleBlocks('todo');syncToolbarState();return}
-  if(e.key==='Enter'&&!e.shiftKey&&!e.ctrlKey){handleEnter(e);return}
+  if(modKey(e)&&e.shiftKey&&k==='x'){e.preventDefault();execInline('strikeThrough');syncToolbarState();return}
+  if(modKey(e)&&e.shiftKey&&k==='c'){e.preventDefault();toggleBlocks('todo');syncToolbarState();return}
+  if(e.key==='Enter'&&!e.shiftKey&&!e.ctrlKey&&!e.metaKey){handleEnter(e);return}
   if(e.key==='Backspace'){handleBackspace(e)}
 });
 
@@ -558,7 +565,7 @@ function closeModal(){$('modal').classList.add('hidden')}
 function showFormError(msg){$('formError').textContent=msg;clearTimeout(showFormError.t);showFormError.t=setTimeout(()=>{$('formError').textContent=''},4000)}
 async function persist(){await window.desktopAPI.saveData(data);render()}
 $('saveBtn').onclick=async()=>{const title=$('titleInput').value.trim(),content=editorMarkdown(),start=$('startDateInput').value,end=$('endDateInput').value||start;if(!title&&!content)return showFormError('제목이나 내용을 하나는 입력해주세요.');if(start&&end&&end<start)return showFormError('종료 날짜가 시작 날짜보다 빠릅니다.');const old=editingId?data.items.find(x=>x.id===editingId):null,now=Date.now();const item={id:editingId||crypto.randomUUID(),title:title||'제목 없음',content,startDate:start,endDate:start?end:'',startTime:$('startTimeInput').value,endTime:$('endTimeInput').value,reminderMinutes:$('reminderInput').value===''?null:Number($('reminderInput').value),repeat:$('repeatInput').value,pinned:$('pinInput').checked,favorite:$('favoriteInput').checked,color:$('colorInput').value||'#DCEBFF',status:editStatus,folder:chosenFolder(),createdAt:old?.createdAt||now,updatedAt:now};if(editingId)data.items[data.items.findIndex(x=>x.id===editingId)]=item;else data.items.push(item);await persist();closeModal()}
-$('titleInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&!e.ctrlKey){e.preventDefault();focusEditorEnd()}});
+$('titleInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&!e.ctrlKey&&!e.metaKey){e.preventDefault();focusEditorEnd()}});
 // 삭제는 한 번 더 눌러 확인합니다(창 안에서 확인 — 시스템 대화상자를 쓰지 않음).
 let deleteArmed=null;
 function resetDeleteBtn(){clearTimeout(deleteArmed);deleteArmed=null;$('deleteBtn').textContent='삭제';$('deleteBtn').classList.remove('armed')}
@@ -567,7 +574,7 @@ document.addEventListener('keydown',e=>{
   if(e.isComposing)return;
   const open=['modal','settingsModal','helpModal'].find(id=>!$(id).classList.contains('hidden'));
   if(e.key==='Escape'&&open){e.preventDefault();if(open==='modal'&&!$('colorWheelPopup').classList.contains('hidden'))$('colorWheelPopup').classList.add('hidden');else $(open).classList.add('hidden');return}
-  if(open==='modal'&&e.ctrlKey&&(e.key==='Enter'||e.key.toLowerCase()==='s')){e.preventDefault();$('saveBtn').click()}
+  if(open==='modal'&&modKey(e)&&(e.key==='Enter'||e.key.toLowerCase()==='s')){e.preventDefault();$('saveBtn').click()}
 });
 $('memoListBtn').onclick=async()=>{memoOpen=!memoOpen;$('mainLayout').classList.toggle('memo-open',memoOpen);$('memoListBtn').classList.toggle('active',memoOpen);$('memoListBtn').querySelector('span').textContent=memoOpen?'닫기':'열기';await window.desktopAPI.setMemoList(memoOpen)};
 $('searchInput').oninput=renderList;document.querySelectorAll('.memo-filters button').forEach(b=>b.onclick=()=>{memoFilter=b.dataset.filter;document.querySelectorAll('.memo-filters button').forEach(x=>x.classList.toggle('active',x===b));renderList()});
@@ -673,13 +680,16 @@ function renderUpdateStatus(st){
   if(s==='ready')btn.innerHTML=`<svg class="icon"><use href="#i-spark"/></svg>v${escapeHtml(updateStatus.newVersion||'')} 업데이트`;
   const text={idle:'새 버전이 나오면 자동으로 받아서 알려 드려요.',checking:'새 버전을 확인하는 중…',latest:'최신 버전을 쓰고 있어요.',
     downloading:`새 버전 v${updateStatus.newVersion||''} 을 받는 중이에요 (${updateStatus.percent||0}%).`,
-    ready:`새 버전 v${updateStatus.newVersion||''} 이 준비됐어요. 다시 시작하면 적용돼요.`,
+    ready:updateStatus.manual?`새 버전 v${updateStatus.newVersion||''} 이 나왔어요. 다운로드 페이지에서 받아 설치해 주세요.`:`새 버전 v${updateStatus.newVersion||''} 이 준비됐어요. 다시 시작하면 적용돼요.`,
     error:'업데이트를 확인하지 못했어요. 인터넷 연결을 확인해 주세요.',dev:'개발용 실행·미리보기에서는 업데이트를 확인하지 않아요.'}[s]||'';
   $('updateStatusText').textContent=text;
-  $('checkUpdateBtn').textContent=s==='ready'?'지금 다시 시작':'업데이트 확인';
+  $('checkUpdateBtn').textContent=s!=='ready'?'업데이트 확인':updateStatus.manual?'다운로드 페이지 열기':'지금 다시 시작';
 }
 function openUpdateModal(){
-  $('updateTitle').textContent=`새 버전 v${updateStatus.newVersion||''} 이 준비됐어요`;
+  const manual=!!updateStatus.manual; // 맥: 앱이 스스로 설치하지 못해 다운로드 페이지로 안내합니다.
+  $('updateTitle').textContent=`새 버전 v${updateStatus.newVersion||''} 이 ${manual?'나왔어요':'준비됐어요'}`;
+  $('updateLead').textContent=manual?'다운로드 페이지에서 새 버전을 받아 응용 프로그램 폴더에 덮어쓰면 돼요. 메모와 설정은 그대로 남아 있어요.':'앱을 다시 시작하면 새 버전이 적용돼요. 메모와 설정은 그대로 남아 있어요.';
+  $('updateInstall').textContent=manual?'다운로드 페이지 열기':'지금 다시 시작';
   $('updateNotes').textContent=notesToText(updateStatus.notes)||'자세한 내용은 다운로드 페이지에서 볼 수 있어요.';
   $('updateModal').classList.remove('hidden');
 }

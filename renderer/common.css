@@ -95,8 +95,8 @@
   --sun:#F0506E;--sat:#3B6FF0;
   --line:rgba(74,108,247,.14);--line-strong:rgba(74,108,247,.28);
   --fill:#EEF4FF;--fill-2:#DDE8FF;--field:#F5F9FF;
-  --font-display:"NeoDunggeunmo","Malgun Gothic",sans-serif;
-  --font:"ChosunGu","Malgun Gothic",sans-serif;
+  --font-display:"NeoDunggeunmo","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --font:"ChosunGu","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   /* 유리 같은 파란 제목 막대 · 연두 버튼 */
   --y2k-bar:linear-gradient(180deg,#A9CBFF 0%,#6F9BFF 46%,#4F7BF2 54%,#7AA6FF 100%);
   --y2k-lime:linear-gradient(180deg,#F1FFE0 0%,#C9F59C 45%,#A6E86A 55%,#CFF7A8 100%);
@@ -133,7 +133,7 @@ button{border:0;cursor:pointer;background:none;padding:0}
 .md li::marker{color:var(--muted)}
 .md blockquote{margin:.3em 0;padding:.1em 0 .1em .8em;border-left:3px solid var(--accent-soft-2);color:var(--muted-2)}
 .md hr{border:0;border-top:1px solid var(--line-strong);margin:.7em 0}
-.md code{font-family:"Cascadia Code",Consolas,"D2Coding",monospace;font-size:.88em;padding:.1em .35em;border-radius:5px;background:var(--fill);color:#C2185B}
+.md code{font-family:"Cascadia Code",Consolas,"SF Mono",Menlo,"D2Coding",monospace;font-size:.88em;padding:.1em .35em;border-radius:5px;background:var(--fill);color:#C2185B}
 .md u{text-underline-offset:2px}
 .md s{text-decoration-thickness:1.5px;color:var(--muted-2)}
 .md-empty{color:var(--muted)}

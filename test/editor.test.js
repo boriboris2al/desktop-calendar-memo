@@ -172,6 +172,19 @@ window.desktopAPI={
   check('sidebar: no script injection',await s.evaluate(()=>window.__xss),undefined);
   errs.push(...se);
 
+  // 맥: 단축키 표시가 ⌘ 로 바뀌고, ⌘+Shift+C · ⌘+Enter 가 동작
+  const mctx=await b.newContext({viewport:{width:1120,height:760},userAgent:'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'});
+  const m=await mctx.newPage();m.on('pageerror',e=>errs.push(e.message));
+  await m.addInitScript(STUB);
+  await m.goto(R+'calendar.html');await m.waitForTimeout(250);
+  check('mac: kbd shows ⌘',await m.evaluate(()=>[...document.querySelectorAll('kbd')].some(k=>k.textContent==='Ctrl')),false);
+  check('mac: tooltip shows ⌘',await m.evaluate(()=>document.querySelector('[data-action=bold]').title),'굵게 (⌘B · **글자**)');
+  await m.click('#newEvent');await m.waitForTimeout(120);await m.fill('#titleInput','맥 일정');await m.click('#contentInput');
+  await m.keyboard.type('할 일');await m.keyboard.press('Meta+Shift+c');
+  check('mac: ⌘+Shift+C todo',await m.evaluate(()=>MD.fromEditor(document.getElementById('contentInput'))),'- [ ] 할 일');
+  await m.keyboard.press('Meta+Enter');await m.waitForTimeout(150);
+  check('mac: ⌘+Enter saves',await m.evaluate(()=>window.__saved.at(-1)?.items.at(-1)?.title),'맥 일정');
+
   await b.close();
   if(errs.length)console.log('PAGE ERRORS:\n'+errs.join('\n'));
   const passed=results.filter(Boolean).length;

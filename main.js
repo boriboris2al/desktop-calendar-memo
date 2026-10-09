@@ -10,6 +10,8 @@ let calendarPinned = false;
 let calendarBaseWidth = 1120;
 let calendarBaseHeight = 760;
 let manualResize = null;
+const IS_MAC = process.platform === 'darwin';
+const RELEASES_URL = 'https://github.com/boriboris2al/desktop-calendar-memo/releases/latest';
 
 function dataFile() {
   return path.join(app.getPath('userData'), 'data.json');
@@ -219,6 +221,8 @@ function createSidebar() {
   });
 
   sidebarWindow.setAlwaysOnTop(true, 'floating');
+  // 맥: 데스크톱(Spaces)을 옮겨도, 전체 화면 앱 위에서도 사이드 탭이 보이게 합니다.
+  if (IS_MAC) sidebarWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   sidebarWindow.loadFile(path.join(__dirname, 'renderer', 'sidebar.html'));
 
   sidebarWindow.once('ready-to-show', () => {
@@ -413,12 +417,22 @@ function setupAutoUpdate() {
     console.error('electron-updater load error:', e);
     return;
   }
-  autoUpdater.autoDownload = true;
-  autoUpdater.autoInstallOnAppQuit = true;
+  // 맥은 Apple 개발자 서명이 없으면 앱이 스스로 새 버전을 설치할 수 없습니다.
+  // 그래서 새 버전이 있다는 것만 알려 주고, 다운로드 페이지를 열어 직접 받게 합니다.
+  autoUpdater.autoDownload = !IS_MAC;
+  autoUpdater.autoInstallOnAppQuit = !IS_MAC;
 
   autoUpdater.on('checking-for-update', () => sendUpdateState({ state: 'checking' }));
   autoUpdater.on('update-not-available', () => sendUpdateState({ state: 'latest', checkedAt: Date.now() }));
-  autoUpdater.on('update-available', info => sendUpdateState({ state: 'downloading', newVersion: info.version, percent: 0 }));
+  autoUpdater.on('update-available', info => {
+    if (!IS_MAC) return sendUpdateState({ state: 'downloading', newVersion: info.version, percent: 0 });
+    sendUpdateState({ state: 'ready', manual: true, newVersion: info.version, notes: releaseNotesText(info.releaseNotes) });
+    if (Notification.isSupported()) {
+      const n = new Notification({ title: `새 버전 v${info.version} 이 나왔어요`, body: '캘린더 아래쪽의 업데이트 버튼을 눌러 받아 주세요.' });
+      n.on('click', () => { if (calendarWindow && !calendarWindow.isDestroyed()) { calendarWindow.show(); calendarWindow.focus(); } });
+      n.show();
+    }
+  });
   autoUpdater.on('download-progress', p => sendUpdateState({ state: 'downloading', percent: Math.round(p.percent || 0) }));
   autoUpdater.on('update-downloaded', info => {
     sendUpdateState({ state: 'ready', newVersion: info.version, notes: releaseNotesText(info.releaseNotes) });
@@ -492,7 +506,9 @@ ipcMain.handle('update:check', async () => {
   return updateState;
 });
 ipcMain.handle('update:install', () => {
-  if (autoUpdater && updateState.state === 'ready') autoUpdater.quitAndInstall(false, true);
+  if (updateState.state !== 'ready') return;
+  if (updateState.manual) shell.openExternal(RELEASES_URL);
+  else if (autoUpdater) autoUpdater.quitAndInstall(false, true);
 });
 
 function dateKey(d) {
@@ -523,7 +539,7 @@ app.whenReady().then(() => {
   createSidebar();
   setupAutoUpdate();
 
-  // 일정 알림: "시작 시각 - 알림 시간"이 된 일정을 Windows 알림으로 띄웁니다.
+  // 일정 알림: "시작 시각 - 알림 시간"이 된 일정을 컴퓨터(Windows·맥) 알림으로 띄웁니다.
   // 반복 일정과 전날 알림(1일 전)도 처리하고, 같은 알림은 한 번만 띄웁니다.
   const firedReminders = new Set();
   setInterval(() => {

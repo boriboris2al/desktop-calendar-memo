@@ -1,6 +1,11 @@
-# Desktop Calendar Memo v1.4.1
+# Desktop Calendar Memo v1.5.0
 
-Apple 메모 앱 느낌의 오프라인 Windows 캘린더 + 메모 (Electron).
+Apple 메모 앱 느낌의 오프라인 Windows · 맥 캘린더 + 메모 (Electron).
+
+## v1.5.0 변경 사항
+
+- 맥(macOS)용 설치 파일(dmg)을 함께 배포합니다. 인텔 맥과 애플 실리콘(M1~) 맥에서 모두 동작합니다.
+- 맥에서는 단축키가 Ctrl 대신 ⌘(Command) 키로 동작합니다.
 
 ## v1.4.1 변경 사항
 
@@ -76,7 +81,8 @@ npm test
 
 ## 배포하기 (누구나 내려받기) · 업데이트 알림
 설치 파일은 GitHub Releases 에 올리고, 설치된 앱은 Releases 를 6시간마다(그리고 켤 때) 확인합니다.
-새 버전이 있으면 백그라운드로 받아서 Windows 알림 + 앱 안 안내 창으로 알려 주고, 다시 시작하면 적용됩니다.
+Windows: 새 버전이 있으면 백그라운드로 받아서 알림 + 앱 안 안내 창으로 알려 주고, 다시 시작하면 적용됩니다.
+맥: Apple 개발자 서명이 없어서 앱이 스스로 설치할 수는 없습니다. 새 버전이 있다고 알려 주고, 버튼을 누르면 다운로드 페이지가 열립니다.
 
 ### 처음 한 번
 1. 저장소를 **공개(Public)** 로 바꾸기 — Settings → General → Danger Zone → Change visibility
@@ -89,20 +95,24 @@ npm test
 1. `release-notes.md` 에 바뀐 점 적기 (앱의 업데이트 안내 창에 그대로 보입니다)
 2. 버전 올리고 태그 푸시
    ```
-   npm version 1.4.1        # package.json 버전 변경 + 커밋 + v1.4.1 태그
+   npm version 1.5.1        # package.json 버전 변경 + 커밋 + v1.5.1 태그
    git push --follow-tags
    ```
    (태그 대신 GitHub 의 **Actions → Release → Run workflow** 버튼을 눌러도 됩니다.
    이때는 `npm version` 으로 올린 버전을 `main` 에 푸시해 둔 상태여야 합니다.
    같은 버전을 다시 만들고 싶으면 버튼 옆의 **rebuild** 를 켜고 실행하면 기존 릴리스를 지우고 새로 올립니다.)
-3. GitHub Actions 가 Windows 설치 파일을 만들어 Releases 에 올립니다(약 5~10분).
+3. GitHub Actions 가 Windows 설치 파일(exe)과 맥 설치 파일(dmg)을 만들어 Releases 에 올립니다(약 5~10분).
    다운로드 주소: `https://github.com/boriboris2al/desktop-calendar-memo/releases/latest`
 
 > 코드 서명을 하지 않은 설치 파일이라 처음 실행할 때 Windows 가 "PC 보호" 경고를 띄웁니다.
 > "추가 정보 → 실행" 으로 설치할 수 있습니다.
+>
+> 맥도 마찬가지로 Apple 서명이 없어서 처음 열 때 "확인되지 않은 개발자" 경고가 뜹니다.
+> dmg 를 열어 앱을 **응용 프로그램** 폴더로 끌어 넣은 뒤, 앱을 한 번 실행해 경고가 뜨면
+> **시스템 설정 → 개인정보 보호 및 보안** 맨 아래의 **그래도 열기** 를 누르면 됩니다(처음 한 번만).
 
 ## 최종 설치 프로그램 만들기 (내 PC 에서만)
 인터넷 연결 상태에서 `make_installer.bat`을 실행하면 `dist` 폴더에
-`DesktopCalendarMemo_v1.4.1.exe`가 생성되도록 구성되어 있습니다.
+`DesktopCalendarMemo_v1.5.0.exe`가 생성되도록 구성되어 있습니다.
 
 최종 설치 프로그램은 Electron/필요 리소스를 포함하므로 사용자가 Node.js나 npm을 설치할 필요가 없습니다.
