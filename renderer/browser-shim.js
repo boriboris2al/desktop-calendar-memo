@@ -40,7 +40,7 @@
     const m=e.data;if(!m||!m.dcm||e.source!==window.parent)return;
     if(m.type==='data'){setData(m.payload);emit('data:changed',data)}
     else if(m.type==='edit')emit('calendar:edit',m.payload);
-    else if(m.type==='update-demo')emit('update:status',{state:'ready',version:'1.4.0',newVersion:'1.5.0',notes:'<ul><li>새 테마 추가</li><li>사이드 메모에서 바로 체크</li><li>자잘한 버그 수정</li></ul>'});
+    else if(m.type==='update-demo')emit('update:status',{state:'ready',version:'1.4.1',newVersion:'1.5.0',notes:'<ul><li>새 테마 추가</li><li>사이드 메모에서 바로 체크</li><li>자잘한 버그 수정</li></ul>'});
     else if(m.type==='settings'){settings={...m.payload};store(SETTINGS_KEY,settings);emit('settings:changed',settings)}
     else if(m.type==='side'){settings={...settings,sidebarSide:m.payload};store(SETTINGS_KEY,settings);emit('sidebar:position',m.payload)}
     else if(m.type==='reset'){try{localStorage.removeItem(DATA_KEY);localStorage.removeItem(SETTINGS_KEY)}catch{}location.reload()}
@@ -67,7 +67,7 @@
     getSidebarSide:async()=>settings.sidebarSide==='left'?'left':'right',
     onSidebarPositionChanged:cb=>on('sidebar:position',cb),
     setSidebarPosition:async(id,side)=>{settings={...settings,sidebarDisplayId:String(id),sidebarSide:side};store(SETTINGS_KEY,settings);post('side',side);emit('sidebar:position',side);return clone(settings)},
-    getAppVersion:async()=>'1.4.0',
+    getAppVersion:async()=>'1.4.1',
     isFeedbackAvailable:async()=>true,
     openFeedback:async()=>{post('toast','실제 앱에서는 여기서 피드백 창이 열려요.')},
     getUpdateStatus:async()=>({state:'dev'}),

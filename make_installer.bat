@@ -1,10 +1,10 @@
 @echo off
 setlocal EnableExtensions
 cd /d "%~dp0"
-title Desktop Calendar Memo v1.4.0 - Build Installer
+title Desktop Calendar Memo v1.4.1 - Build Installer
 
 echo ========================================
-echo  Desktop Calendar Memo v1.4.0
+echo  Desktop Calendar Memo v1.4.1
 echo  Windows Installer Build
 echo ========================================
 echo.
@@ -40,6 +40,6 @@ echo  BUILD COMPLETE
 echo ========================================
 echo.
 echo Check the dist folder for:
-echo DesktopCalendarMemo_v1.4.0.exe
+echo DesktopCalendarMemo_v1.4.1.exe
 echo.
 pause

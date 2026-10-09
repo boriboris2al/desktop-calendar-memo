@@ -474,6 +474,13 @@ ipcMain.handle('feedback:open', () => {
       if (h !== host && !h.endsWith('notion.so') && !h.endsWith('notion.site') && !h.endsWith('notion.com')) { e.preventDefault(); shell.openExternal(target); }
     } catch { e.preventDefault(); }
   });
+  // Notion 폼의 텍스트 칸은 한 줄 높이라 쓰기 답답합니다. 앱 창 안에서만 입력칸을 크게 보여 줍니다.
+  feedbackWindow.webContents.on('did-finish-load', () => {
+    feedbackWindow?.webContents.insertCSS(
+      '[contenteditable="true"],textarea{min-height:240px!important;align-items:flex-start!important;' +
+      'white-space:pre-wrap!important;overflow-y:auto!important;line-height:1.6!important}'
+    ).catch(() => {});
+  });
   feedbackWindow.loadURL(url);
   feedbackWindow.on('closed', () => { feedbackWindow = null; });
   return true;
