@@ -1,0 +1,102 @@
+/* 사이드 고정 메모: 화면 가장자리의 탭 + 펼침 패널 */
+html,body{overflow:visible}
+
+/* ===== 탭 =====
+   main.js 의 접힌 창 높이 계산(tabHeight 102px)에 맞춰 탭 높이를 96px로 고정하고,
+   긴 제목은 말줄임 처리합니다. */
+.tab-rail{position:absolute;right:0;top:50%;transform:translateY(-50%);width:100%;display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding:8px 0}
+.tab{
+  --c:var(--tab-color,#DCEBFF);
+  --c-deep:color-mix(in srgb,var(--c) 55%,#3A3A50);
+  position:relative;width:40px;height:96px;padding:11px 0 9px 3px;
+  display:flex;flex-direction:column;align-items:center;gap:5px;overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--c) 70%,#000 8%);border-right:0;border-radius:13px 0 0 13px;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--c) 45%,#fff) 0%,var(--c) 100%);
+  box-shadow:0 6px 16px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.7);
+  color:var(--text);
+  transition:width .18s ease,box-shadow .18s ease;
+}
+.tab::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--c-deep);opacity:.55;transition:opacity .18s}
+.tab-dot{flex:none;width:6px;height:6px;border-radius:50%;background:var(--c-deep)}
+.tab-label{
+  flex:1;min-height:0;max-height:100%;
+  writing-mode:vertical-rl;text-orientation:mixed;
+  font-size:11.5px;font-weight:650;letter-spacing:.04em;line-height:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.tab:hover{width:44px;box-shadow:0 8px 20px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.7)}
+.tab:hover::before{opacity:.85}
+.tab.active{width:48px;box-shadow:0 10px 24px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.7)}
+.tab.active::before{opacity:1}
+
+/* ===== 패널 ===== */
+.panel{
+  --c:var(--panel-color,#DCEBFF);
+  --c-deep:color-mix(in srgb,var(--c) 55%,#3A3A50);
+  position:absolute;right:54px;top:50%;transform:translateY(-50%);
+  width:326px;max-height:620px;display:flex;flex-direction:column;overflow:hidden;
+  background:var(--card);border:1px solid rgba(60,60,67,.1);border-radius:20px;
+  box-shadow:0 24px 60px rgba(0,0,0,.18),0 2px 6px rgba(0,0,0,.06);
+  animation:panel-in .2s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes panel-in{from{opacity:0;transform:translate(10px,-50%) scale(.98)}to{opacity:1;transform:translate(0,-50%)}}
+
+.panel-head{
+  position:relative;flex:none;padding:16px 48px 14px 18px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 65%,#fff) 0%,color-mix(in srgb,var(--c) 25%,#fff) 100%);
+  border-bottom:1px solid color-mix(in srgb,var(--c) 60%,#000 6%);
+}
+.panel-eyebrow{display:flex;align-items:center;gap:4px;margin-bottom:5px;font-size:10.5px;font-weight:650;letter-spacing:.06em;color:var(--c-deep)}
+.panel-eyebrow .icon{width:12px;height:12px;stroke-width:2.2}
+.panel-title{display:block;font-size:18px;font-weight:750;letter-spacing:-.02em;line-height:1.3;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.panel-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.panel-meta:empty{display:none}
+.chip{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.05);font-size:11px;font-weight:600;color:var(--text-2);font-variant-numeric:tabular-nums}
+.chip .icon{width:12px;height:12px;stroke-width:2.1;color:var(--c-deep)}
+.panel-meta .status-tag{height:22px;padding:0 9px;font-size:11px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
+.chip.done{background:var(--c-deep);border-color:transparent;color:#fff}
+.chip.done .icon{color:#fff}
+.panel-progress{height:4px;margin-top:10px;border-radius:999px;background:rgba(255,255,255,.7);overflow:hidden}
+.panel-progress i{display:block;height:100%;width:var(--p,0%);border-radius:inherit;background:var(--c-deep);transition:width .25s ease}
+.panel-close{position:absolute;top:12px;right:12px;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.65);color:var(--muted-2);transition:background .12s,color .12s}
+.panel-close:hover{background:#fff;color:var(--text)}
+.panel-close .icon{width:15px;height:15px}
+
+.panel-content{flex:1;min-height:0;overflow:auto;padding:16px 18px 18px;font-size:13.5px}
+.panel-content .md{line-height:1.7}
+.panel-content .md-todo{padding:3px 6px;margin:1px -6px;border-radius:8px;transition:background .12s}
+.panel-content .md-todo:hover{background:var(--fill)}
+.panel-content .md-todo input{--todo-color:var(--c-deep);width:16px;height:16px;margin-top:.22em;border-radius:5px}
+
+.panel-actions{flex:none;display:flex;align-items:center;gap:6px;padding:10px 12px 10px 18px;border-top:1px solid var(--line);background:#FAFAFB}
+.panel-updated{flex:1;min-width:0;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.panel-actions button{display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 12px;border-radius:10px;font-size:12.5px;font-weight:600;transition:background .12s,color .12s}
+.panel-actions .icon{width:15px;height:15px}
+.panel-actions .ghost{color:var(--muted-2)}
+.panel-actions .ghost:hover{background:var(--fill-2);color:var(--text)}
+.panel-actions .primary{background:var(--ink);color:#fff}
+.panel-actions .primary:hover{background:#000}
+
+/* ===== 왼쪽 배치 시 좌우 반전 ===== */
+body.side-left .tab-rail{left:0;right:auto;align-items:flex-start}
+body.side-left .tab{padding:11px 3px 9px 0;border-left:0;border-right:1px solid color-mix(in srgb,var(--c) 70%,#000 8%);border-radius:0 13px 13px 0}
+body.side-left .tab::before{left:auto;right:0;border-radius:3px 0 0 3px}
+body.side-left .panel{left:54px;right:auto}
+body.side-left .panel{animation-name:panel-in-left}
+@keyframes panel-in-left{from{opacity:0;transform:translate(-10px,-50%) scale(.98)}to{opacity:1;transform:translate(0,-50%)}}
+
+/* ===== 테마: Y2K 윈도우 — 패널을 작은 창처럼 ===== */
+:root[data-theme="y2k"] .tab{border:1.5px solid #93B5FF;border-right:0;box-shadow:inset 0 1px 0 #fff,0 4px 12px rgba(60,90,200,.18)}
+:root[data-theme="y2k"] body.side-left .tab{border-left:0;border-right:1.5px solid #93B5FF}
+:root[data-theme="y2k"] .tab-label{font-family:var(--font-display);letter-spacing:0;font-synthesis-weight:none;font-synthesis-weight:none}
+:root[data-theme="y2k"] .panel{border:2px solid #93B5FF;box-shadow:0 6px 0 rgba(147,181,255,.35),0 24px 50px rgba(40,70,160,.22)}
+:root[data-theme="y2k"] .panel-head{margin:6px 6px 0;padding:10px 46px 12px 14px;border-radius:12px;border:1.5px solid #fff;background:var(--y2k-bar);color:#fff}
+:root[data-theme="y2k"] .panel-eyebrow,:root[data-theme="y2k"] .panel-title,:root[data-theme="y2k"] .panel-updated{font-family:var(--font-display);font-synthesis-weight:none}
+:root[data-theme="y2k"] .panel-eyebrow,:root[data-theme="y2k"] .panel-title{color:#fff;letter-spacing:0;text-shadow:0 1px 0 rgba(30,60,170,.45)}
+:root[data-theme="y2k"] .panel-close{top:14px;right:14px;color:#fff;background:radial-gradient(circle at 50% 30%,#FFB3A8 0%,#FF5A4E 55%,#E0362B 100%);box-shadow:inset 0 0 0 1.5px #fff}
+:root[data-theme="y2k"] .chip{font-family:var(--font-display);letter-spacing:0;font-synthesis-weight:none;font-synthesis-weight:none}
+:root[data-theme="y2k"] .panel-progress{background:rgba(255,255,255,.4)}
+:root[data-theme="y2k"] .panel-progress i{background:var(--y2k-lime)}
+:root[data-theme="y2k"] .panel-actions{background:#F4F8FF}
+:root[data-theme="y2k"] .panel-actions button{font-family:var(--font-display);letter-spacing:0;font-synthesis-weight:none;border:1.5px solid #93B5FF;background:var(--y2k-glass);color:var(--ink)}
+:root[data-theme="y2k"] .panel-actions .primary{background:var(--y2k-lime);border-color:#86D35A;color:#2F4FC8}

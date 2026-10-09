@@ -1,0 +1,30 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('desktopAPI', {
+  getData: () => ipcRenderer.invoke('data:get'),
+  saveData: (data) => ipcRenderer.invoke('data:save', data),
+  setMemoList: (open) => ipcRenderer.invoke('calendar:setMemoList', open),
+  setCalendarPinned: (pinned) => ipcRenderer.invoke('calendar:setPinned', pinned),
+  setSidebarExpanded: (expanded) => ipcRenderer.invoke('sidebar:setExpanded', expanded),
+  openCalendar: (id) => ipcRenderer.invoke('calendar:open', id),
+  closeWindow: (which) => ipcRenderer.invoke('window:close', which),
+  minimizeWindow: () => ipcRenderer.invoke('window:minimize'),
+  onDataChanged: (callback) => ipcRenderer.on('data:changed', (_, data) => callback(data)),
+  onCalendarEdit: (callback) => ipcRenderer.on('calendar:edit', (_, id) => callback(id)),
+  getSettings: () => ipcRenderer.invoke('settings:get'),
+  saveSettings: (patch) => ipcRenderer.invoke('settings:save', patch),
+  onSettingsChanged: (callback) => ipcRenderer.on('settings:changed', (_, settings) => callback(settings)),
+  getSidebarPositions: () => ipcRenderer.invoke('sidebar:getPositions'),
+  getSidebarSide: () => ipcRenderer.invoke('sidebar:getSide'),
+  onSidebarPositionChanged: (callback) => ipcRenderer.on('sidebar:position', (_, side) => callback(side)),
+  setSidebarPosition: (displayId, side) => ipcRenderer.invoke('sidebar:setPosition', displayId, side),
+  getWindowBounds: () => ipcRenderer.invoke('window:getBounds'),
+  setWindowBounds: (bounds) => ipcRenderer.invoke('window:setBounds', bounds),
+  getAppVersion: () => ipcRenderer.invoke('app:version'),
+  isFeedbackAvailable: () => ipcRenderer.invoke('feedback:available'),
+  openFeedback: () => ipcRenderer.invoke('feedback:open'),
+  getUpdateStatus: () => ipcRenderer.invoke('update:get'),
+  checkForUpdates: () => ipcRenderer.invoke('update:check'),
+  installUpdate: () => ipcRenderer.invoke('update:install'),
+  onUpdateStatus: (callback) => ipcRenderer.on('update:status', (_, status) => callback(status))
+});

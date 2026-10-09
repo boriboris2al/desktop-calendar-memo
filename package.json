@@ -1,0 +1,54 @@
+{
+  "name": "desktop-calendar-memo",
+  "version": "1.4.0",
+  "description": "Desktop Calendar Memo - Apple Notes inspired offline calendar and memo",
+  "main": "main.js",
+  "feedbackUrl": "https://app.notion.com/p/boriboris2alll/bf2be401924c46ee87f6965ac6454ceb?pvs=106",
+  "scripts": {
+    "start": "electron .",
+    "start:win": "electron .",
+    "test": "node test/editor.test.js",
+    "dist": "electron-builder --win --publish never",
+    "release": "electron-builder --win --publish always",
+    "postinstall": "node scripts/copy-fonts.js"
+  },
+  "dependencies": {
+    "electron-updater": "^6.6.8"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.0",
+    "@noonnu/chosun-gu": "0.1.0"
+  },
+  "build": {
+    "appId": "com.juhyeon.desktopcalendarmemo",
+    "productName": "Desktop Calendar Memo",
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "assets/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "artifactName": "DesktopCalendarMemo_v${version}.${ext}"
+    },
+    "icon": "assets/calendar-icon.ico",
+    "artifactName": "DesktopCalendarMemo_v${version}.${ext}",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "boriboris2al",
+        "repo": "desktop-calendar-memo",
+        "releaseType": "release"
+      }
+    ],
+    "releaseInfo": {
+      "releaseNotesFile": "release-notes.md"
+    }
+  },
+  "allowScripts": {
+    "electron": true,
+    "electron-winstaller": true
+  }
+}

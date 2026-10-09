@@ -1,0 +1,6 @@
+node_modules/
+dist/
+*.png
+!assets/**/*.png
+# 조선굴림은 npm install 때 scripts/copy-fonts.js 가 복사합니다(저장소에 넣지 않음)
+assets/fonts/ChosunGu.*

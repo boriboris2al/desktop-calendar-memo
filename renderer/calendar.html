@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>캘린더</title>
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="calendar.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 10.8a2 2 0 0 1-1.1 1.8l-1.8.9A2 2 0 0 0 5 15.2v.8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.8a2 2 0 0 0-1.1-1.8l-1.8-.9A2 2 0 0 1 15 10.8V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M15 4v16"/></symbol>
+  <symbol id="i-min" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M17 7 7 17M7 7l10 10"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r=".6"/><circle cx="4.5" cy="12" r=".6"/><circle cx="4.5" cy="18" r=".6"/></symbol>
+  <symbol id="i-olist" viewBox="0 0 24 24"><path d="M10 6h10M10 12h10M10 18h10"/><path d="M4 5l1.5-1v5M3.5 13.5a1.5 1.5 0 1 1 2.6 1L3.5 17.5h3"/></symbol>
+  <symbol id="i-todo" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-quote" viewBox="0 0 24 24"><path d="M5 5v14"/><path d="M10 8h9M10 12h9M10 16h6"/></symbol>
+  <symbol id="i-eraser" viewBox="0 0 24 24"><path d="m7 21-4.3-4.3a1 1 0 0 1 0-1.4l10-10a1 1 0 0 1 1.4 0l5.6 5.6a1 1 0 0 1 0 1.4L13 21"/><path d="M22 21H7M5 11l9 9"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2.2h7.5A2.5 2.5 0 0 1 21 9.7v7.8a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.1A8 8 0 1 1 20 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8 1c0 1.7-2.4 2.2-2.4 3.7"/><circle cx="12" cy="17.2" r=".5"/></symbol>
+</svg>
+
+<div class="app-shell" id="appShell">
+  <div class="shell-deco" aria-hidden="true"></div>
+  <header class="titlebar">
+    <div class="brand"><img class="brand-icon" src="../assets/calendar-icon.svg" alt=""><strong>캘린더</strong></div>
+    <div class="top-controls">
+      <span class="opacity-label">투명도</span>
+      <input id="topOpacityInput" class="slider top-opacity" type="range" min="25" max="100" value="82" title="배경 투명도">
+      <output id="topOpacityValue">82%</output>
+    </div>
+    <div class="window-buttons">
+      <button id="sidebarPosBtn" class="icon-btn" title="사이드 메모 위치"><svg class="icon"><use href="#i-panel"/></svg></button>
+      <button id="pinBtn" class="icon-btn" title="캘린더 위치 고정"><svg class="icon"><use href="#i-pin"/></svg></button>
+      <button id="minBtn" class="icon-btn" title="최소화"><svg class="icon"><use href="#i-min"/></svg></button>
+      <button id="closeBtn" class="icon-btn close" title="닫기"><svg class="icon"><use href="#i-close"/></svg></button>
+    </div>
+  </header>
+  <div id="sidebarPositionPopover" class="popover sidebar-position-popover hidden">
+    <div class="popover-title">사이드 메모 위치</div>
+    <div class="popover-sub">고정된 메모 탭이 표시될 위치를 선택하세요.</div>
+    <div id="quickSidebarPositions" class="position-grid"></div>
+  </div>
+
+  <div class="main-layout" id="mainLayout">
+    <section class="calendar-pane">
+      <div class="calendar-toolbar">
+        <div class="month-nav">
+          <button class="icon-btn nav-btn" id="prevMonth" title="이전 달"><svg class="icon"><use href="#i-left"/></svg></button>
+          <h1 class="month-title" id="monthTitle"></h1>
+          <button class="icon-btn nav-btn" id="nextMonth" title="다음 달"><svg class="icon"><use href="#i-right"/></svg></button>
+        </div>
+        <button id="todayBtn" class="btn">오늘</button>
+        <span class="spacer"></span>
+        <button id="memoListBtn" class="btn btn-tinted"><svg class="icon"><use href="#i-list"/></svg>메모 리스트 <span>열기</span></button>
+        <button id="newEvent" class="btn btn-primary"><svg class="icon"><use href="#i-plus"/></svg>일정 추가</button>
+      </div>
+      <div class="month card-surface">
+        <div class="weekdays"><div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div></div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+      </div>
+    </section>
+
+    <aside id="memoPane" class="memo-pane">
+      <div class="memo-header">
+        <div><h2>메모</h2><div class="memo-count" id="memoCount"></div></div>
+        <button id="newMemo" class="btn btn-tinted"><svg class="icon"><use href="#i-plus"/></svg>새 메모</button>
+      </div>
+      <div class="search-wrap"><svg class="icon"><use href="#i-search"/></svg><input id="searchInput" placeholder="검색"></div>
+      <div id="folderBar" class="folder-bar"></div>
+      <div id="folderActions" class="folder-actions hidden"></div>
+      <div class="memo-filters"><button data-filter="all" class="active">전체 <b id="allCount">0</b></button><button data-filter="favorite">즐겨찾기 <b id="favCount">0</b></button><button data-filter="today">오늘 <b id="todayCount">0</b></button><button data-filter="dated">날짜 있음 <b id="datedCount">0</b></button></div>
+      <div id="memoList" class="memo-list"></div>
+    </aside>
+  </div>
+
+  <footer class="statusbar">
+    <button id="settingsBtn" class="footer-link"><svg class="icon"><use href="#i-gear"/></svg>설정</button>
+    <button id="feedbackBtn" class="footer-link hidden"><svg class="icon"><use href="#i-chat"/></svg>피드백 보내기</button>
+    <button id="helpBtn" class="footer-link"><svg class="icon"><use href="#i-help"/></svg>도움말</button>
+    <button id="updateBtn" class="footer-link update-pill hidden" type="button"></button>
+    <span class="sync"><span id="appVersion" class="app-version"></span>로컬 저장 <i></i></span>
+  </footer>
+</div>
+
+<div id="modal" class="modal hidden">
+  <div class="modal-card editor-card" role="dialog" aria-labelledby="modalTitle">
+    <div class="modal-head"><strong id="modalTitle">새 일정 / 메모</strong><button id="modalClose" class="icon-btn" title="닫기 (Esc)"><svg class="icon"><use href="#i-close"/></svg></button></div>
+
+    <div class="modal-body">
+      <input id="titleInput" class="title-input" placeholder="제목" autocomplete="off">
+
+      <div class="editor-box">
+        <div id="editorToolbar" class="editor-toolbar">
+          <button type="button" data-action="bold" title="굵게 (Ctrl+B · **글자**)"><b>B</b></button>
+          <button type="button" data-action="italic" title="기울임 (Ctrl+I · *글자*)"><i>I</i></button>
+          <button type="button" data-action="underline" title="밑줄 (Ctrl+U)"><u>U</u></button>
+          <button type="button" data-action="strike" title="취소선 (Ctrl+Shift+X · ~~글자~~)"><s>S</s></button>
+          <span class="tool-divider"></span>
+          <button type="button" data-action="h1" title="제목 1 (# + 스페이스)">H1</button>
+          <button type="button" data-action="h2" title="제목 2 (## + 스페이스)">H2</button>
+          <button type="button" data-action="body" title="본문">본문</button>
+          <span class="tool-divider"></span>
+          <button type="button" data-action="bullet" title="글머리 목록 (- + 스페이스)"><svg class="icon"><use href="#i-list"/></svg></button>
+          <button type="button" data-action="numbered" title="번호 목록 (1. + 스페이스)"><svg class="icon"><use href="#i-olist"/></svg></button>
+          <button type="button" data-action="todo" title="할 일 (Ctrl+Shift+C · [] + 스페이스)"><svg class="icon"><use href="#i-todo"/></svg></button>
+          <button type="button" data-action="quote" title="인용 (> + 스페이스)"><svg class="icon"><use href="#i-quote"/></svg></button>
+          <span class="tool-spacer"></span>
+          <button type="button" data-action="clear" title="서식 지우기"><svg class="icon"><use href="#i-eraser"/></svg></button>
+        </div>
+        <div id="contentInput" class="editor md" contenteditable="true" spellcheck="false" data-placeholder="메모를 입력하세요. 마크다운(# 제목, - 목록, [] 할 일, **굵게**)을 쓸 수 있어요."></div>
+      </div>
+
+      <div class="field-grid">
+        <div class="field field-wide">상태
+          <div id="statusInput" class="segmented" role="radiogroup" aria-label="상태">
+            <button type="button" data-status="" role="radio">없음</button>
+            <button type="button" data-status="todo" role="radio"><i class="st-dot todo"></i>시작 전</button>
+            <button type="button" data-status="doing" role="radio"><i class="st-dot doing"></i>진행 중</button>
+            <button type="button" data-status="done" role="radio"><i class="st-dot done"></i>완료</button>
+          </div>
+        </div>
+        <label class="field field-wide">폴더
+          <span class="folder-pick"><select id="folderInput"></select><input id="newFolderInput" class="hidden" placeholder="새 폴더 이름" maxlength="30" autocomplete="off"></span>
+        </label>
+        <label class="field">시작 날짜<input id="startDateInput" type="date"></label>
+        <label class="field">종료 날짜<input id="endDateInput" type="date"></label>
+        <label class="field">시작 시간<input id="startTimeInput" type="time"></label>
+        <label class="field">종료 시간<input id="endTimeInput" type="time"></label>
+        <label class="field">알림<select id="reminderInput"><option value="">없음</option><option value="0">정시</option><option value="5">5분 전</option><option value="10">10분 전</option><option value="30">30분 전</option><option value="60">1시간 전</option><option value="1440">1일 전</option></select></label>
+        <label class="field">반복<select id="repeatInput"><option value="none">반복 안 함</option><option value="daily">매일</option><option value="weekly">매주</option><option value="monthly">매월</option><option value="yearly">매년</option></select></label>
+      </div>
+
+      <div class="field">색상
+        <div class="color-picker">
+          <div id="colorSwatches" class="color-swatches"></div>
+          <div class="custom-color-row">
+            <button type="button" id="colorPreview" class="color-preview" title="색상 휠 열기"></button>
+            <input id="colorHexInput" type="text" value="#DCEBFF" maxlength="7" placeholder="#DCEBFF" spellcheck="false">
+          </div>
+          <div id="colorWheelPopup" class="popover color-wheel-popup hidden"><canvas id="colorWheel" width="220" height="220"></canvas><div class="color-wheel-bottom"><span id="colorWheelValue">#DCEBFF</span><button type="button" id="colorWheelDone" class="btn btn-tinted">완료</button></div></div>
+        </div>
+        <input id="colorInput" type="color" value="#6f4bd8" class="color-native-hidden" tabindex="-1">
+      </div>
+
+      <div class="toggle-row">
+        <label class="check"><input id="pinInput" type="checkbox"> 사이드에 항상 고정</label>
+        <label class="check"><input id="favoriteInput" type="checkbox"> 즐겨찾기</label>
+      </div>
+    </div>
+
+    <div class="modal-actions"><button id="deleteBtn" class="btn btn-danger hidden">삭제</button><span id="formError" class="form-error" role="alert"></span><button id="cancelBtn" class="btn">취소</button><button id="saveBtn" class="btn btn-primary" title="저장 (Ctrl+Enter)">저장</button></div>
+  </div>
+</div>
+
+<div id="settingsModal" class="modal hidden">
+  <div class="modal-card settings-card">
+    <div class="modal-head"><strong>화면 설정</strong><button id="settingsClose" class="icon-btn"><svg class="icon"><use href="#i-close"/></svg></button></div>
+    <div class="modal-body">
+      <div class="setting-section first">
+        <div class="setting-section-title">테마</div>
+        <div class="setting-section-hint">캘린더와 사이드 고정 메모에 함께 적용돼요.</div>
+        <div id="themeOptions" class="theme-grid"></div>
+        <div id="gradientColors" class="theme-colors hidden">
+          <label class="theme-color">배경 1<input type="color" id="themeBg1"></label>
+          <label class="theme-color">배경 2<input type="color" id="themeBg2"></label>
+          <label class="theme-color">배경 3<input type="color" id="themeBg3"></label>
+          <label class="theme-color">강조색<input type="color" id="themeAccent"></label>
+          <button type="button" id="themeColorsReset" class="btn theme-reset">기본 색으로</button>
+        </div>
+      </div>
+
+      <div class="setting-section">
+      <div class="setting-row"><div><b>배경 투명도</b><small>캘린더 배경만 투명해집니다. 글씨와 일정은 선명하게 유지돼요.</small></div><output id="opacityValue">82%</output></div>
+      <input id="opacityInput" class="slider" type="range" min="25" max="100" value="82">
+      <div class="setting-hint">낮출수록 바탕화면이 더 잘 보입니다.</div>
+      </div>
+
+      <div class="setting-section">
+        <div class="setting-section-title">사이드 메모 위치</div>
+        <div class="setting-section-hint">고정된 메모 탭이 표시될 모니터와 방향을 선택하세요.</div>
+        <div id="sidebarPositionOptions" class="position-grid"></div>
+      </div>
+
+      <div class="setting-section">
+        <div class="setting-section-title">업데이트</div>
+        <div class="update-row"><div><b id="settingsVersion">현재 버전</b><small id="updateStatusText">새 버전이 나오면 자동으로 받아서 알려 드려요.</small></div><button id="checkUpdateBtn" type="button" class="btn">업데이트 확인</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="updateModal" class="modal hidden">
+  <div class="modal-card update-card">
+    <div class="modal-head"><strong id="updateTitle">새 버전이 준비됐어요</strong><button id="updateClose" class="icon-btn"><svg class="icon"><use href="#i-close"/></svg></button></div>
+    <div class="modal-body">
+      <p class="update-lead">앱을 다시 시작하면 새 버전이 적용돼요. 메모와 설정은 그대로 남아 있어요.</p>
+      <div class="update-notes-title">바뀐 점</div>
+      <div id="updateNotes" class="update-notes"></div>
+    </div>
+    <div class="modal-actions"><span class="spacer"></span><button id="updateLater" class="btn">나중에</button><button id="updateInstall" class="btn btn-primary">지금 다시 시작</button></div>
+  </div>
+</div>
+
+<div id="helpModal" class="modal hidden">
+  <div class="modal-card help-card">
+    <div class="modal-head"><strong>도움말</strong><button id="helpClose" class="icon-btn"><svg class="icon"><use href="#i-close"/></svg></button></div>
+    <div class="help-tabs" role="tablist">
+      <button type="button" role="tab" data-help-tab="guide" class="active" aria-selected="true">기능 안내</button>
+      <button type="button" role="tab" data-help-tab="writing" aria-selected="false">메모 작성</button>
+    </div>
+    <div class="modal-body">
+      <div class="help-panel" data-help-panel="guide">
+        <div class="guide-grid">
+          <section class="guide-card">
+            <h3><svg class="icon"><use href="#i-plus"/></svg>일정 추가하기</h3>
+            <ul>
+              <li>달력의 날짜 칸을 누르거나 위쪽 <b>일정 추가</b> 버튼을 눌러요.</li>
+              <li>시작·종료 날짜를 다르게 하면 여러 날에 걸친 막대로 보여요.</li>
+              <li><b>반복</b>: 매일 · 매주 · 매월 · 매년.</li>
+              <li><b>알림</b>: 시작 시간을 정하면 정시 ~ 1일 전에 Windows 알림이 떠요.</li>
+              <li><b>색상</b>은 일정 막대와 메모 카드 색이 돼요.</li>
+              <li><b>상태</b>(시작 전 · 진행 중 · 완료)를 달면 일정 막대 오른쪽에 회색 · 파랑 · 초록 점이 생겨요.</li>
+            </ul>
+          </section>
+          <section class="guide-card">
+            <h3><svg class="icon"><use href="#i-list"/></svg>메모</h3>
+            <ul>
+              <li>날짜를 비워 두고 저장하면 달력에 뜨지 않는 일반 메모가 돼요.</li>
+              <li><b>메모 리스트 열기</b>로 모든 메모를 카드로 봐요.</li>
+              <li>검색하거나 전체 · 즐겨찾기 · 오늘 · 날짜 있음으로 골라 볼 수 있어요.</li>
+              <li><b>폴더</b>: 메모 리스트 위쪽의 <b>+ 폴더</b>로 만들고, 폴더를 누르면 그 폴더 메모만 보여요. 선택한 폴더에서 이름 바꾸기 · 삭제(메모는 남아요)도 할 수 있어요.</li>
+              <li>카드 속 체크박스는 열지 않고 바로 체크돼요.</li>
+            </ul>
+          </section>
+          <section class="guide-card">
+            <h3><svg class="icon"><use href="#i-pin"/></svg>사이드 고정 메모</h3>
+            <ul>
+              <li>편집 창에서 <b>사이드에 항상 고정</b>을 켜면 화면 가장자리에 탭이 생겨요. 다른 프로그램 위에도 늘 보여요.</li>
+              <li>탭을 누르면 메모가 펼쳐져요. 체크하거나 <b>편집 · 고정 해제</b>를 할 수 있어요.</li>
+              <li>탭 위치(모니터 · 왼쪽/오른쪽)는 위쪽 <svg class="icon inline"><use href="#i-panel"/></svg> 버튼이나 설정에서 바꿔요.</li>
+            </ul>
+          </section>
+          <section class="guide-card">
+            <h3><svg class="icon"><use href="#i-panel"/></svg>창 다루기</h3>
+            <ul>
+              <li><b>투명도</b>를 낮추면 배경만 투명해져서 바탕화면 위젯처럼 쓸 수 있어요.</li>
+              <li><svg class="icon inline"><use href="#i-pin"/></svg> 버튼으로 창 위치를 고정하면 실수로 끌려가지 않아요.</li>
+              <li>위쪽 막대를 끌면 창이 움직이고, 가장자리를 끌면 크기가 바뀌어요.</li>
+              <li>‹ › 로 달을 넘기고, <b>오늘</b>로 돌아와요. 칸이 좁으면 날짜 옆에 <b>+N</b>으로 남은 일정 수가 보여요.</li>
+            </ul>
+          </section>
+          <section class="guide-card">
+            <h3><svg class="icon"><use href="#i-gear"/></svg>테마</h3>
+            <ul>
+              <li>설정 → 테마에서 기본 · 그라데이션 · 민트 피아노 · Y2K 윈도우 중에 골라요.</li>
+              <li>그라데이션은 배경 3색과 강조색을 직접 바꿀 수 있어요.</li>
+              <li>사이드 고정 메모에도 같이 적용돼요.</li>
+            </ul>
+          </section>
+          <section class="guide-card">
+            <h3><svg class="icon"><use href="#i-spark"/></svg>저장 · 업데이트</h3>
+            <ul>
+              <li>메모는 이 PC에만 저장돼요. 인터넷이 없어도 돼요.</li>
+              <li>새 버전이 나오면 자동으로 받아서 알려 줘요. 아래쪽 업데이트 버튼을 누르고 다시 시작하면 적용돼요.</li>
+              <li>설정 → 업데이트에서 직접 확인할 수도 있어요.</li>
+              <li>써 보고 좋았던 점 · 불편한 점 · 버그는 아래쪽 <b>피드백 보내기</b>로 알려 주세요.</li>
+            </ul>
+          </section>
+        </div>
+        <p class="guide-tip">메모에 제목·목록·체크박스를 넣는 방법은 <button type="button" class="link-btn" data-help-tab="writing">메모 작성</button> 탭에서 볼 수 있어요.</p>
+      </div>
+      <div class="help-panel hidden" data-help-panel="writing">
+        <p class="help-lead">줄 맨 앞에 아래처럼 입력하고 <kbd>스페이스</kbd>를 누르면 바로 서식이 적용됩니다.</p>
+        <table class="help-table">
+          <tr><td><code># </code></td><td>제목 1</td><td><code>## </code></td><td>제목 2</td></tr>
+          <tr><td><code>- </code></td><td>글머리 목록</td><td><code>1. </code></td><td>번호 목록</td></tr>
+          <tr><td><code>[] </code></td><td>할 일 체크박스</td><td><code>[x] </code></td><td>완료된 할 일</td></tr>
+          <tr><td><code>&gt; </code></td><td>인용</td><td><code>---</code> + <kbd>Enter</kbd></td><td>구분선</td></tr>
+        </table>
+        <p class="help-lead">글자 서식은 기호로 감싸면 적용됩니다.</p>
+        <table class="help-table">
+          <tr><td><code>**굵게**</code></td><td><b>굵게</b></td><td><code>*기울임*</code></td><td><i>기울임</i></td></tr>
+          <tr><td><code>~~취소선~~</code></td><td><s>취소선</s></td><td><code>`코드`</code></td><td><code>코드</code></td></tr>
+        </table>
+        <p class="help-lead">단축키</p>
+        <table class="help-table">
+          <tr><td><kbd>Ctrl</kbd>+<kbd>B</kbd> / <kbd>I</kbd> / <kbd>U</kbd></td><td>굵게 / 기울임 / 밑줄</td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd></td><td>취소선</td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd></td><td>할 일 체크박스 켜기/끄기</td></tr>
+          <tr><td><kbd>Enter</kbd> (빈 할 일·목록에서)</td><td>목록 끝내기</td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>Enter</kbd> / <kbd>Esc</kbd></td><td>저장 / 닫기</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="resize-handle resize-n" data-dir="n"></div><div class="resize-handle resize-s" data-dir="s"></div><div class="resize-handle resize-e" data-dir="e"></div><div class="resize-handle resize-w" data-dir="w"></div><div class="resize-handle resize-ne" data-dir="ne"></div><div class="resize-handle resize-nw" data-dir="nw"></div><div class="resize-handle resize-se" data-dir="se"></div><div class="resize-handle resize-sw" data-dir="sw"></div>
+<script src="browser-shim.js"></script>
+<script src="markdown.js"></script>
+<script src="theme.js"></script>
+<script src="status.js"></script>
+<script src="calendar.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+조선굴림체 (ChosunGu)
+Copyright (c) 2020 조선일보사 (The Chosun Ilbo)
+
+Y2K 윈도우 테마의 본문 글꼴로 사용합니다.
+원본: 조선일보 무료 서체 — https://noonnu.cc/font_page/415 (npm: @noonnu/chosun-gu)
+글꼴 파일은 저장소에 포함하지 않고, npm install 때 @noonnu/chosun-gu 패키지에서 복사해 설치 파일에만 넣습니다.
+사용 조건은 조선일보 서체 배포 안내를 따릅니다.
