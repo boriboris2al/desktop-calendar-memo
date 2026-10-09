@@ -9,7 +9,8 @@
     "start:win": "electron .",
     "test": "node test/editor.test.js",
     "dist": "electron-builder --win --publish never",
-    "release": "electron-builder --win --publish always",
+    "dist:mac": "electron-builder --mac --publish never",
+    "release": "electron-builder --publish always",
     "postinstall": "node scripts/copy-fonts.js"
   },
   "dependencies": {
