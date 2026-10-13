@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, Notification, screen, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { createNotionSync } = require('./notion-sync');
 
 let calendarWindow = null;
 let sidebarWindow = null;
@@ -249,11 +250,26 @@ function broadcast(channel, payload) {
   }
 }
 
+// ===== Notion 연동 (날짜가 있는 일정만, 앱 → Notion) =====
+let notionSync = null;
+function setupNotionSync() {
+  notionSync = createNotionSync({
+    userData: app.getPath('userData'), loadSettings, saveSettings, loadData,
+    onStatus: st => broadcast('notion:status', st)
+  });
+  notionSync.schedule(3000); // 켤 때 한 번 맞춰 둡니다(바뀐 것이 없으면 Notion 에 쓰지 않음)
+}
+ipcMain.handle('notion:get', () => notionSync?.getStatus() || { state: 'off' });
+ipcMain.handle('notion:connect', (_, token, database) => notionSync.connect(token, database));
+ipcMain.handle('notion:disconnect', () => notionSync.disconnect());
+ipcMain.handle('notion:sync', () => notionSync.syncNow());
+
 ipcMain.handle('data:get', () => loadData());
 
 ipcMain.handle('data:save', (_, data) => {
   saveData(data);
   broadcast('data:changed', data);
+  notionSync?.schedule();
 
   // 고정 메모가 하나라도 있으면 오른쪽 탭을 항상 표시한다.
   const hasPinned = (data.items || []).some(x => x.pinned);
@@ -563,6 +579,7 @@ app.whenReady().then(() => {
   createSidebar();
   setupAutoUpdate();
   applyLaunchAtLogin();
+  setupNotionSync();
 
   // 일정 알림: "시작 시각 - 알림 시간"이 된 일정을 컴퓨터(Windows·맥) 알림으로 띄웁니다.
   // 반복 일정과 전날 알림(1일 전)도 처리하고, 같은 알림은 한 번만 띄웁니다.

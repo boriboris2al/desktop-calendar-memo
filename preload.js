@@ -29,5 +29,10 @@ contextBridge.exposeInMainWorld('desktopAPI', {
   getUpdateStatus: () => ipcRenderer.invoke('update:get'),
   checkForUpdates: () => ipcRenderer.invoke('update:check'),
   installUpdate: () => ipcRenderer.invoke('update:install'),
-  onUpdateStatus: (callback) => ipcRenderer.on('update:status', (_, status) => callback(status))
+  onUpdateStatus: (callback) => ipcRenderer.on('update:status', (_, status) => callback(status)),
+  getNotionStatus: () => ipcRenderer.invoke('notion:get'),
+  connectNotion: (token, database) => ipcRenderer.invoke('notion:connect', token, database),
+  disconnectNotion: () => ipcRenderer.invoke('notion:disconnect'),
+  syncNotion: () => ipcRenderer.invoke('notion:sync'),
+  onNotionStatus: (callback) => ipcRenderer.on('notion:status', (_, status) => callback(status))
 });

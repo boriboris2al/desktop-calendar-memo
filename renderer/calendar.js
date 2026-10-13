@@ -661,7 +661,32 @@ async function renderLaunchAtLogin(){
   $('launchAtLoginHint').textContent=st.available?'로그인하면 캘린더와 사이드 메모가 바로 떠요.':'설치한 앱에서만 바꿀 수 있어요.';
 }
 $('launchAtLoginInput').onchange=async e=>{e.target.checked=await window.desktopAPI.setLaunchAtLogin?.(e.target.checked)??e.target.checked};
-$('settingsBtn').onclick=async()=>{$('settingsModal').classList.remove('hidden');renderThemeOptions();renderLaunchAtLogin();applyOpacity(settings.backgroundOpacity||82);await renderSidebarPositionOptions()};$('settingsClose').onclick=()=>$('settingsModal').classList.add('hidden');$('settingsModal').onclick=e=>{if(e.target===$('settingsModal'))$('settingsModal').classList.add('hidden')};$('opacityInput').oninput=e=>applyOpacity(e.target.value);$('topOpacityInput').oninput=e=>applyOpacity(e.target.value);$('opacityInput').onchange=async()=>{settings=await window.desktopAPI.saveSettings({backgroundOpacity:Number($('opacityInput').value)})};$('topOpacityInput').onchange=async()=>{settings=await window.desktopAPI.saveSettings({backgroundOpacity:Number($('topOpacityInput').value)})};
+// Notion 연동
+function renderNotion(st){
+  st=st||{state:'off'};
+  const on=st.state!=='off';
+  $('notionForm').classList.toggle('hidden',on);
+  $('notionConnected').classList.toggle('hidden',!on);
+  if(!on){if(st.message)showNotionError(st.message);return}
+  $('notionDbName').textContent=`연결됨 · ${st.databaseTitle||'Notion 데이터베이스'}`;
+  const when=st.lastSync?new Date(st.lastSync).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}):'';
+  $('notionStatusText').textContent={syncing:'Notion 으로 보내는 중…',ok:`일정 ${st.count??0}개 · ${when} 에 보냄`,error:st.message||'보내지 못했어요. 잠시 후 다시 시도해요.',idle:'바뀐 일정이 있으면 자동으로 보내요.'}[st.state]||'';
+  $('notionStatusText').classList.toggle('error-text',st.state==='error');
+}
+function showNotionError(msg){$('notionFormError').textContent=msg||''}
+$('notionConnectBtn').onclick=async()=>{
+  showNotionError('');
+  $('notionConnectBtn').disabled=true;$('notionConnectBtn').textContent='확인 중…';
+  try{
+    const st=await window.desktopAPI.connectNotion?.($('notionTokenInput').value,$('notionDbInput').value);
+    renderNotion(st);
+    if(st&&st.state!=='off'){$('notionTokenInput').value='';$('notionDbInput').value=''}
+  }finally{$('notionConnectBtn').disabled=false;$('notionConnectBtn').textContent='연결'}
+};
+$('notionSyncBtn').onclick=async()=>renderNotion(await window.desktopAPI.syncNotion?.());
+$('notionDisconnectBtn').onclick=async()=>{showNotionError('');renderNotion(await window.desktopAPI.disconnectNotion?.())};
+window.desktopAPI.onNotionStatus?.(renderNotion);
+$('settingsBtn').onclick=async()=>{$('settingsModal').classList.remove('hidden');renderThemeOptions();renderLaunchAtLogin();renderNotion(await window.desktopAPI.getNotionStatus?.());applyOpacity(settings.backgroundOpacity||82);await renderSidebarPositionOptions()};$('settingsClose').onclick=()=>$('settingsModal').classList.add('hidden');$('settingsModal').onclick=e=>{if(e.target===$('settingsModal'))$('settingsModal').classList.add('hidden')};$('opacityInput').oninput=e=>applyOpacity(e.target.value);$('topOpacityInput').oninput=e=>applyOpacity(e.target.value);$('opacityInput').onchange=async()=>{settings=await window.desktopAPI.saveSettings({backgroundOpacity:Number($('opacityInput').value)})};$('topOpacityInput').onchange=async()=>{settings=await window.desktopAPI.saveSettings({backgroundOpacity:Number($('topOpacityInput').value)})};
 function showHelpTab(tab){
   document.querySelectorAll('[data-help-tab]').forEach(b=>{if(b.closest('.help-tabs')){b.classList.toggle('active',b.dataset.helpTab===tab);b.setAttribute('aria-selected',b.dataset.helpTab===tab)}});
   document.querySelectorAll('[data-help-panel]').forEach(p=>p.classList.toggle('hidden',p.dataset.helpPanel!==tab));

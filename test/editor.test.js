@@ -203,6 +203,18 @@ window.desktopAPI={
   await p.click('#launchAtLoginInput');await p.waitForTimeout(80);
   check('settings: autostart toggles off',await p.evaluate(()=>window.__login),false);
 
+  // 설정: Notion 연동 — 연결 전에는 입력 칸, 연결하면 상태 표시
+  check('notion: form shown when off',await p.isVisible('#notionTokenInput'),true);
+  await p.evaluate(()=>{window.desktopAPI.connectNotion=async(t,d)=>t&&d?{state:'ok',databaseTitle:'내 일정',count:3,lastSync:Date.now()}:{state:'off',message:'연결 키를 붙여 넣어 주세요.'};window.desktopAPI.disconnectNotion=async()=>({state:'off'})});
+  await p.click('#notionConnectBtn');await p.waitForTimeout(80);
+  check('notion: error message',await p.textContent('#notionFormError'),'연결 키를 붙여 넣어 주세요.');
+  await p.fill('#notionTokenInput','ntn_x');await p.fill('#notionDbInput','https://www.notion.so/x');
+  await p.click('#notionConnectBtn');await p.waitForTimeout(80);
+  check('notion: connected view',JSON.stringify([await p.isVisible('#notionConnected'),await p.textContent('#notionDbName'),(await p.textContent('#notionStatusText')).startsWith('일정 3개')]),JSON.stringify([true,'연결됨 · 내 일정',true]));
+  check('notion: token field cleared',await p.inputValue('#notionTokenInput'),'');
+  await p.click('#notionDisconnectBtn');await p.waitForTimeout(80);
+  check('notion: disconnect shows form',await p.isVisible('#notionTokenInput'),true);
+
   await b.close();
   if(errs.length)console.log('PAGE ERRORS:\n'+errs.join('\n'));
   const passed=results.filter(Boolean).length;
