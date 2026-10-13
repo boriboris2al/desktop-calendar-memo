@@ -654,7 +654,14 @@ function themeColorsFromInputs(){return {bg1:$('themeBg1').value,bg2:$('themeBg2
   $(id).addEventListener('change',()=>saveTheme({themeColors:themeColorsFromInputs()}));
 });
 $('themeColorsReset').onclick=()=>saveTheme({themeColors:{...Theme.GRADIENT_DEFAULT}});
-$('settingsBtn').onclick=async()=>{$('settingsModal').classList.remove('hidden');renderThemeOptions();applyOpacity(settings.backgroundOpacity||82);await renderSidebarPositionOptions()};$('settingsClose').onclick=()=>$('settingsModal').classList.add('hidden');$('settingsModal').onclick=e=>{if(e.target===$('settingsModal'))$('settingsModal').classList.add('hidden')};$('opacityInput').oninput=e=>applyOpacity(e.target.value);$('topOpacityInput').oninput=e=>applyOpacity(e.target.value);$('opacityInput').onchange=async()=>{settings=await window.desktopAPI.saveSettings({backgroundOpacity:Number($('opacityInput').value)})};$('topOpacityInput').onchange=async()=>{settings=await window.desktopAPI.saveSettings({backgroundOpacity:Number($('topOpacityInput').value)})};
+async function renderLaunchAtLogin(){
+  const st=await window.desktopAPI.getLaunchAtLogin?.()||{enabled:false,available:false};
+  $('launchAtLoginInput').checked=!!st.enabled;
+  $('launchAtLoginInput').disabled=!st.available;
+  $('launchAtLoginHint').textContent=st.available?'로그인하면 캘린더와 사이드 메모가 바로 떠요.':'설치한 앱에서만 바꿀 수 있어요.';
+}
+$('launchAtLoginInput').onchange=async e=>{e.target.checked=await window.desktopAPI.setLaunchAtLogin?.(e.target.checked)??e.target.checked};
+$('settingsBtn').onclick=async()=>{$('settingsModal').classList.remove('hidden');renderThemeOptions();renderLaunchAtLogin();applyOpacity(settings.backgroundOpacity||82);await renderSidebarPositionOptions()};$('settingsClose').onclick=()=>$('settingsModal').classList.add('hidden');$('settingsModal').onclick=e=>{if(e.target===$('settingsModal'))$('settingsModal').classList.add('hidden')};$('opacityInput').oninput=e=>applyOpacity(e.target.value);$('topOpacityInput').oninput=e=>applyOpacity(e.target.value);$('opacityInput').onchange=async()=>{settings=await window.desktopAPI.saveSettings({backgroundOpacity:Number($('opacityInput').value)})};$('topOpacityInput').onchange=async()=>{settings=await window.desktopAPI.saveSettings({backgroundOpacity:Number($('topOpacityInput').value)})};
 function showHelpTab(tab){
   document.querySelectorAll('[data-help-tab]').forEach(b=>{if(b.closest('.help-tabs')){b.classList.toggle('active',b.dataset.helpTab===tab);b.setAttribute('aria-selected',b.dataset.helpTab===tab)}});
   document.querySelectorAll('[data-help-panel]').forEach(p=>p.classList.toggle('hidden',p.dataset.helpPanel!==tab));

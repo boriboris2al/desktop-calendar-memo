@@ -480,3 +480,12 @@ kbd{display:inline-block;min-width:20px;padding:1px 6px;border:1px solid var(--l
 .resize-se{bottom:0;right:0;width:14px;height:14px;cursor:nwse-resize}
 .resize-sw{bottom:0;left:0;width:14px;height:14px;cursor:nesw-resize}
 :root[data-theme="y2k"] .update-pill.ready{background:var(--y2k-lime);color:#2F4FC8;box-shadow:inset 0 0 0 1.5px #fff}
+
+/* 설정의 켜기/끄기 스위치 */
+.switch-row{cursor:pointer}
+.switch{appearance:none;-webkit-appearance:none;flex:none;position:relative;width:40px;height:24px;margin:0;border-radius:999px;background:rgba(70,55,90,.18);cursor:pointer;transition:background .18s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .18s}
+.switch:checked{background:linear-gradient(135deg,var(--accent),var(--accent-2))}
+.switch:checked::after{transform:translateX(16px)}
+.switch:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.switch:disabled{opacity:.45;cursor:default}

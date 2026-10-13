@@ -221,6 +221,9 @@ function createSidebar() {
   });
 
   sidebarWindow.setAlwaysOnTop(true, 'floating');
+  // 창의 투명한 빈 곳은 클릭이 뒤의 바탕화면·다른 창으로 그대로 지나가게 합니다.
+  // 마우스가 탭이나 패널 위에 올라오면 sidebar.js 가 'sidebar:mouse' 로 알려 와서 그때만 클릭을 받습니다.
+  sidebarWindow.setIgnoreMouseEvents(true, { forward: true });
   // 맥: 데스크톱(Spaces)을 옮겨도, 전체 화면 앱 위에서도 사이드 탭이 보이게 합니다.
   if (IS_MAC) sidebarWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   sidebarWindow.loadFile(path.join(__dirname, 'renderer', 'sidebar.html'));
@@ -271,6 +274,27 @@ ipcMain.handle('data:save', (_, data) => {
 });
 
 ipcMain.handle('settings:get', () => loadSettings());
+
+ipcMain.on('sidebar:mouse', (_, interactive) => {
+  if (sidebarWindow && !sidebarWindow.isDestroyed()) sidebarWindow.setIgnoreMouseEvents(!interactive, { forward: true });
+});
+
+// ===== 컴퓨터를 켤 때 자동 실행 =====
+// 기본은 켜짐. 설치된 앱에서만 등록합니다(개발용 실행 중에는 electron.exe 가 등록되지 않게).
+function launchAtLoginEnabled() {
+  return loadSettings().launchAtLogin !== false;
+}
+function applyLaunchAtLogin() {
+  if (!app.isPackaged) return;
+  try { app.setLoginItemSettings({ openAtLogin: launchAtLoginEnabled() }); }
+  catch (e) { console.error('login item error:', e); }
+}
+ipcMain.handle('app:getLaunchAtLogin', () => ({ enabled: launchAtLoginEnabled(), available: app.isPackaged }));
+ipcMain.handle('app:setLaunchAtLogin', (_, on) => {
+  saveSettings({ ...loadSettings(), launchAtLogin: Boolean(on) });
+  applyLaunchAtLogin();
+  return launchAtLoginEnabled();
+});
 
 ipcMain.handle('sidebar:getPositions', () => getSidebarPositions());
 ipcMain.handle('sidebar:getSide', () => loadSettings().sidebarSide === 'left' ? 'left' : 'right');
@@ -538,6 +562,7 @@ app.whenReady().then(() => {
   createCalendar();
   createSidebar();
   setupAutoUpdate();
+  applyLaunchAtLogin();
 
   // 일정 알림: "시작 시각 - 알림 시간"이 된 일정을 컴퓨터(Windows·맥) 알림으로 띄웁니다.
   // 반복 일정과 전날 알림(1일 전)도 처리하고, 같은 알림은 한 번만 띄웁니다.

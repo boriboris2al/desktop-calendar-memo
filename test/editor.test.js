@@ -170,6 +170,17 @@ window.desktopAPI={
   await s.click('.md-todo >> nth=0');await s.waitForTimeout(100);
   check('sidebar checkbox toggles markdown',await s.evaluate(()=>window.__saved.at(-1)?.items[0].content.split('\n')[1]),'- [x] 장보기');
   check('sidebar: no script injection',await s.evaluate(()=>window.__xss),undefined);
+  // 사이드 메모: 탭·패널 위에서만 클릭을 받고, 빈 곳에서는 클릭이 뒤로 지나가게
+  await s.evaluate(()=>{window.__mouse=[];window.desktopAPI.setSidebarInteractive=on=>window.__mouse.push(on)});
+  await s.mouse.move(5,5);
+  check('sidebar: empty area → click-through',await s.evaluate(()=>window.__mouse.at(-1)),false);
+  const tabBox=await s.locator('.tab').first().boundingBox();
+  await s.mouse.move(tabBox.x+tabBox.width/2,tabBox.y+tabBox.height/2);
+  check('sidebar: over tab → clickable',await s.evaluate(()=>window.__mouse.at(-1)),true);
+  await s.mouse.move(5,5);
+  const panelBox=await s.locator('.panel').boundingBox();
+  await s.mouse.move(panelBox.x+20,panelBox.y+20);
+  check('sidebar: over panel → clickable',await s.evaluate(()=>window.__mouse.at(-1)),true);
   errs.push(...se);
 
   // 맥: 단축키 표시가 ⌘ 로 바뀌고, ⌘+Shift+C · ⌘+Enter 가 동작
@@ -184,6 +195,13 @@ window.desktopAPI={
   check('mac: ⌘+Shift+C todo',await m.evaluate(()=>MD.fromEditor(document.getElementById('contentInput'))),'- [ ] 할 일');
   await m.keyboard.press('Meta+Enter');await m.waitForTimeout(150);
   check('mac: ⌘+Enter saves',await m.evaluate(()=>window.__saved.at(-1)?.items.at(-1)?.title),'맥 일정');
+
+  // 설정: 컴퓨터를 켤 때 자동 실행 스위치
+  await p.evaluate(()=>{window.__login=true;window.desktopAPI.getLaunchAtLogin=async()=>({enabled:window.__login,available:true});window.desktopAPI.setLaunchAtLogin=async on=>(window.__login=on)});
+  await p.click('#settingsBtn');await p.waitForTimeout(150);
+  check('settings: autostart on by default',await p.isChecked('#launchAtLoginInput'),true);
+  await p.click('#launchAtLoginInput');await p.waitForTimeout(80);
+  check('settings: autostart toggles off',await p.evaluate(()=>window.__login),false);
 
   await b.close();
   if(errs.length)console.log('PAGE ERRORS:\n'+errs.join('\n'));

@@ -121,6 +121,20 @@ window.desktopAPI.onDataChanged(d=>{
   render();
 });
 
+// 탭·패널 위에서만 클릭을 받고, 나머지 투명한 곳의 클릭은 뒤쪽 창으로 넘깁니다.
+let interactive=false;
+function setInteractive(on){
+  if(on===interactive)return;
+  interactive=on;
+  window.desktopAPI.setSidebarInteractive?.(on);
+}
+document.addEventListener('mousemove',e=>{
+  const over=!!e.target.closest?.('.tab,.panel');
+  if(!over&&e.buttons)return; // 패널 안에서 드래그(글자 선택 등)하다 밖으로 나가도 끊기지 않게
+  setInteractive(over);
+});
+document.addEventListener('mouseleave',()=>setInteractive(false));
+
 init();
 window.desktopAPI.onSidebarPositionChanged(side=>{document.body.classList.toggle('side-left',side==='left')});
 window.desktopAPI.onSettingsChanged?.(s=>Theme.apply(s));
