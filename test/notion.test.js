@@ -6,7 +6,17 @@ const os = require('os');
 const path = require('path');
 
 // ----- 가짜 Notion -----
-const db = { id: '0123456789abcdef0123456789abcdef', title: [{ plain_text: '내 일정' }], properties: { '이름': { type: 'title' } } };
+// 앱이 권하는 열을 모두 갖춘 데이터베이스
+const db = { id: '0123456789abcdef0123456789abcdef', title: [{ plain_text: '내 일정' }], properties: {
+  '이름': { type: 'title' }, '날짜': { type: 'date' }, '상태': { type: 'select' }, '폴더': { type: 'select' },
+  '반복': { type: 'select' }, '즐겨찾기': { type: 'checkbox' }, '앱 ID': { type: 'rich_text' } } };
+// 이미 쓰던 업무 데이터베이스: 제목 열 이름이 다르고 '상태'가 상태(status) 종류, 다른 열은 없음
+const workDb = { id: 'fedcba9876543210fedcba9876543210', title: [{ plain_text: '업무회고록' }], properties: {
+  '내용': { type: 'title' }, '날짜': { type: 'date' }, '프로젝트': { type: 'select' },
+  '상태': { type: 'status', status: { options: ['일정', '시작 전', '진행 중', '완료'].map(name => ({ name })) } } } };
+// 빈 데이터베이스(제목 열만)
+const blankDb = { id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', title: [{ plain_text: '빈 표' }], properties: { 'Name': { type: 'title' } } };
+const dbs = Object.fromEntries([db, workDb, blankDb].map(d => [d.id, d]));
 const pages = {}; // id → { properties, children:[{id,...}], archived }
 const calls = [];
 let nextId = 1;
@@ -18,13 +28,14 @@ async function fakeFetch(url, opts) {
   if (opts.headers.Authorization !== 'Bearer ntn_good') return json(401, { code: 'unauthorized', message: 'API token is invalid.' });
   let m;
   if ((m = u.match(/^\/databases\/([\w-]+)$/))) {
-    if (m[1].replace(/-/g, '') !== db.id) return json(404, { code: 'object_not_found', message: 'not found' });
-    if (opts.method === 'PATCH') for (const [k, v] of Object.entries(body.properties)) db.properties[k] = { type: Object.keys(v)[0] };
-    return json(200, db);
+    const d = dbs[m[1].replace(/-/g, '')];
+    if (!d) return json(404, { code: 'object_not_found', message: 'not found' });
+    if (opts.method === 'PATCH') for (const [k, v] of Object.entries(body.properties)) d.properties[k] = { type: Object.keys(v)[0] };
+    return json(200, d);
   }
   if (u === '/pages' && opts.method === 'POST') {
     const id = `page-${nextId++}`;
-    pages[id] = { properties: body.properties, children: body.children.map(c => ({ id: `b${nextId++}`, ...c })), archived: false };
+    pages[id] = { parent: body.parent.database_id.replace(/-/g, ''), properties: body.properties, children: body.children.map(c => ({ id: `b${nextId++}`, ...c })), archived: false };
     return json(200, { id });
   }
   if ((m = u.match(/^\/pages\/([\w-]+)$/))) {
@@ -87,7 +98,7 @@ const check = (n, g, e) => { const ok = JSON.stringify(g) === JSON.stringify(e);
   check('connect ok', [conn.state, conn.message || ''], ['syncing', '']);
   if (conn.state !== 'syncing') process.exit(1);
   await done;
-  check('schema columns', Object.keys(db.properties).sort(), ['날짜', '반복', '상태', '앱 ID', '이름', '즐겨찾기', '폴더'].sort());
+  check('schema unchanged when columns exist', Object.keys(db.properties).length, 7);
   check('settings saved', !!settings.notion.token, true);
   check('only dated items', Object.values(pages).length, 2);
   const a = pageOf('a');
@@ -126,6 +137,36 @@ const check = (n, g, e) => { const ok = JSON.stringify(g) === JSON.stringify(e);
 
   // 연결 끊기
   check('disconnect', [sync.disconnect().state, settings.notion], ['off', undefined]);
+
+  // 이미 쓰던 업무 데이터베이스: 열을 새로 만들지 않고, 상태(status) 열에 맞춰 넣음
+  const workSettings = {};
+  const work = createNotionSync({
+    userData: fs.mkdtempSync(path.join(os.tmpdir(), 'dcm-notion-')), loadSettings: () => workSettings.v || {}, saveSettings: s => { workSettings.v = JSON.parse(JSON.stringify(s)); },
+    loadData: () => ({ items: [
+      { id: 'w1', title: '보고서 마감', startDate: '2026-10-15', status: 'doing', folder: '업무', favorite: true, content: '' },
+      { id: 'w2', title: '상태 없는 일정', startDate: '2026-10-16', content: '' }
+    ] }),
+    onStatus: st => { if (st.state === 'ok' || st.state === 'error') waiters.splice(0).forEach(r => r(st)); }
+  });
+  done = synced();
+  check('work db: connect', (await work.connect('ntn_good', `https://app.notion.com/p/ws/${workDb.id}?v=1`)).state, 'syncing');
+  check('work db: synced', (await done).state, 'ok');
+  check('work db: no new columns', Object.keys(workDb.properties).sort(), ['내용', '날짜', '상태', '프로젝트'].sort());
+  const workPages = Object.values(pages).filter(p => p.parent === workDb.id);
+  check('work db: title/date/status', [workPages[0].properties['내용'].title[0].text.content, workPages[0].properties['날짜'].date.start, workPages[0].properties['상태']], ['보고서 마감', '2026-10-15', { status: { name: '진행 중' } }]);
+  check('work db: no status → left to Notion default', workPages[1].properties['상태'], undefined);
+  check('work db: only existing columns written', Object.keys(workPages[0].properties).sort(), ['내용', '날짜', '상태'].sort());
+
+  // 빈 데이터베이스: 날짜 열만 만들어서 씀
+  const blankSettings = {};
+  const blank = createNotionSync({
+    userData: fs.mkdtempSync(path.join(os.tmpdir(), 'dcm-notion-')), loadSettings: () => blankSettings.v || {}, saveSettings: s => { blankSettings.v = JSON.parse(JSON.stringify(s)); },
+    loadData: () => ({ items: [{ id: 'x', title: '하나', startDate: '2026-10-17', content: '' }] }),
+    onStatus: st => { if (st.state === 'ok' || st.state === 'error') waiters.splice(0).forEach(r => r(st)); }
+  });
+  done = synced(); await blank.connect('ntn_good', blankDb.id); await done;
+  check('blank db: only date column added', Object.keys(blankDb.properties).sort(), ['Name', '날짜'].sort());
+  check('blank db: page written', Object.values(pages).filter(p => p.parent === blankDb.id).map(p => [p.properties.Name.title[0].text.content, p.properties['날짜'].date.start]), [['하나', '2026-10-17']]);
 
   // 날짜 변환 단독
   check('end before start dropped', notionDate({ startDate: '2026-01-01', startTime: '10:00', endTime: '09:00' }).end, null);

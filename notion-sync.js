@@ -21,16 +21,10 @@ function loadMarkdown() {
 
 const STATUS_LABEL = { todo: '시작 전', doing: '진행 중', done: '완료' };
 const REPEAT_LABEL = { daily: '매일', weekly: '매주', monthly: '매월', yearly: '매년' };
-// 앱이 데이터베이스에 만들어 두는 열(이미 있으면 그대로 씁니다).
-const SCHEMA = {
-  '날짜': { date: {} },
-  '상태': { select: { options: [{ name: '시작 전', color: 'gray' }, { name: '진행 중', color: 'blue' }, { name: '완료', color: 'green' }] } },
-  '폴더': { select: {} },
-  '반복': { select: { options: [{ name: '매일', color: 'purple' }, { name: '매주', color: 'purple' }, { name: '매월', color: 'purple' }, { name: '매년', color: 'purple' }] } },
-  '즐겨찾기': { checkbox: {} },
-  '앱 ID': { rich_text: {} }
-};
-const TYPE_LABEL = { date: '날짜', select: '선택', checkbox: '체크박스', rich_text: '텍스트' };
+// 이미 쓰던 데이터베이스에도 연결할 수 있게, 열은 있는 것만 채웁니다.
+//   제목 열(이름은 무엇이든) · 날짜 열: 꼭 필요(날짜 열이 없으면 '날짜' 열을 하나 만듭니다)
+//   '상태'(선택 또는 상태 종류) · '폴더'(선택) · '반복'(선택) · '즐겨찾기'(체크박스) · '앱 ID'(텍스트): 있으면 채움
+const OPTIONAL = { '폴더': 'select', '반복': 'select', '즐겨찾기': 'checkbox', '앱 ID': 'rich_text' };
 
 const pad = n => String(n).padStart(2, '0');
 const sha = v => crypto.createHash('sha1').update(JSON.stringify(v)).digest('hex');
@@ -173,31 +167,40 @@ function createNotionSync({ userData, loadSettings, saveSettings, loadData, onSt
     return { db, title: (db.title || []).map(t => t.plain_text).join('') || '제목 없는 데이터베이스' };
   }
 
-  // 필요한 열이 없으면 만들고, 같은 이름인데 종류가 다르면 알려 줍니다. 제목 열의 이름을 돌려줍니다.
+  // 데이터베이스에 어떤 열이 있는지 보고 채울 열을 정합니다. 날짜 열이 하나도 없으면 '날짜' 열을 만듭니다.
   async function ensureSchema(token, databaseId, db) {
     const props = db.properties || {};
-    const titleName = Object.keys(props).find(k => props[k].type === 'title');
-    const missing = {};
-    for (const [name, def] of Object.entries(SCHEMA)) {
-      const type = Object.keys(def)[0];
-      if (!props[name]) missing[name] = def;
-      else if (props[name].type !== type) throw new NotionError(400, 'schema', `데이터베이스의 '${name}' 열 종류를 '${TYPE_LABEL[type]}'(으)로 바꾸거나 열 이름을 바꿔 주세요.`);
+    const names = Object.keys(props);
+    const layout = { title: names.find(k => props[k].type === 'title') };
+    layout.date = props['날짜']?.type === 'date' ? '날짜' : names.find(k => props[k].type === 'date');
+    if (!layout.date) {
+      const name = props['날짜'] ? '일정 날짜' : '날짜';
+      await api(token, 'PATCH', `/databases/${databaseId}`, { properties: { [name]: { date: {} } } });
+      layout.date = name;
     }
-    if (Object.keys(missing).length) await api(token, 'PATCH', `/databases/${databaseId}`, { properties: missing });
-    return titleName;
+    const st = props['상태'];
+    if (st && (st.type === 'select' || st.type === 'status')) {
+      // '상태' 종류 열은 이미 있는 선택지만 쓸 수 있어서, 선택지 목록을 기억해 둡니다.
+      layout.status = { type: st.type, options: st.type === 'status' ? (st.status?.options || []).map(o => o.name) : null };
+    }
+    for (const [name, type] of Object.entries(OPTIONAL)) if (props[name]?.type === type) layout[name] = true;
+    return layout;
   }
 
-  function pageProperties(item, titleName) {
-    const folder = String(item.folder || '').replace(/,/g, ' ').trim();
-    return {
-      [titleName]: { title: [{ type: 'text', text: { content: String(item.title || '제목 없음').slice(0, 2000) } }] },
-      '날짜': { date: notionDate(item) },
-      '상태': { select: STATUS_LABEL[item.status] ? { name: STATUS_LABEL[item.status] } : null },
-      '폴더': { select: folder ? { name: folder } : null },
-      '반복': { select: REPEAT_LABEL[item.repeat] ? { name: REPEAT_LABEL[item.repeat] } : null },
-      '즐겨찾기': { checkbox: !!item.favorite },
-      '앱 ID': { rich_text: [{ type: 'text', text: { content: String(item.id) } }] }
+  function pageProperties(item, layout) {
+    const props = {
+      [layout.title]: { title: [{ type: 'text', text: { content: String(item.title || '제목 없음').slice(0, 2000) } }] },
+      [layout.date]: { date: notionDate(item) }
     };
+    const label = STATUS_LABEL[item.status];
+    if (layout.status?.type === 'select') props['상태'] = { select: label ? { name: label } : null };
+    else if (layout.status && label && layout.status.options.includes(label)) props['상태'] = { status: { name: label } };
+    const folder = String(item.folder || '').replace(/,/g, ' ').trim();
+    if (layout['폴더']) props['폴더'] = { select: folder ? { name: folder } : null };
+    if (layout['반복']) props['반복'] = { select: REPEAT_LABEL[item.repeat] ? { name: REPEAT_LABEL[item.repeat] } : null };
+    if (layout['즐겨찾기']) props['즐겨찾기'] = { checkbox: !!item.favorite };
+    if (layout['앱 ID']) props['앱 ID'] = { rich_text: [{ type: 'text', text: { content: String(item.id) } }] };
+    return props;
   }
 
   async function appendBlocks(token, pageId, blocks) {
@@ -230,14 +233,14 @@ function createNotionSync({ userData, loadSettings, saveSettings, loadData, onSt
     if (!cfg) { setStatus({ state: 'off' }); return; }
     setStatus({ state: 'syncing', databaseTitle: cfg.databaseTitle });
     const { db } = await getDatabase(cfg.token, cfg.databaseId);
-    const titleName = await ensureSchema(cfg.token, cfg.databaseId, db);
+    const layout = await ensureSchema(cfg.token, cfg.databaseId, db);
 
     const map = loadMap(cfg.databaseId);
     const dated = (loadData().items || []).filter(x => x.startDate);
     const keep = new Set();
     for (const item of dated) {
       keep.add(item.id);
-      const props = pageProperties(item, titleName);
+      const props = pageProperties(item, layout);
       const blocks = blocksFromMarkdown(MD, item.content);
       const propsHash = sha(props), bodyHash = sha(blocks);
       const entry = map.items[item.id];

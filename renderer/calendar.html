@@ -204,11 +204,13 @@
           <details class="notion-howto">
             <summary>연결 키와 링크는 어디서 받나요?</summary>
             <ol>
-              <li>notion.so/profile/integrations 에서 <b>새 통합</b>을 만들고(유형: 내부), <b>내부 통합 시크릿</b>을 복사해 위 칸에 붙여 넣어요.</li>
-              <li>일정을 받을 데이터베이스를 Notion 에 하나 만들어요(빈 표 데이터베이스면 돼요).</li>
-              <li>그 데이터베이스 오른쪽 위 <b>⋯ → 연결</b>에서 방금 만든 통합을 추가해요.</li>
-              <li>데이터베이스의 <b>⋯ → 링크 복사</b>로 받은 주소를 위 칸에 붙여 넣고 <b>연결</b>을 눌러요. 날짜 · 상태 · 폴더 같은 열은 앱이 알아서 만들어요.</li>
+              <li>브라우저에서 <b>notion.so/profile/integrations</b> 를 열어요(Notion 설정 → 연결 → 맨 아래 "연결 개발 또는 관리"로도 갈 수 있어요).</li>
+              <li><b>+ 새 통합</b>을 누르고 이름(예: 캘린더 메모) · 워크스페이스를 고른 뒤 유형은 <b>내부</b>로 저장해요.</li>
+              <li>만든 통합의 <b>구성</b> 탭에 있는 <b>내부 통합 시크릿</b>에서 <b>표시 → 복사</b>를 눌러 위 <b>연결 키</b> 칸에 붙여 넣어요(ntn_ 으로 시작해요).</li>
+              <li>일정을 받을 데이터베이스(또는 그 데이터베이스가 들어 있는 페이지) 오른쪽 위 <b>⋯ → 연결</b>에서 방금 만든 통합을 추가해요.</li>
+              <li>데이터베이스의 <b>⋯ → 링크 복사</b>로 받은 주소를 위 칸에 붙여 넣고 <b>연결</b>을 눌러요.</li>
             </ol>
+            <p>이미 쓰던 데이터베이스도 돼요. 제목 열과 날짜 열에 일정이 들어가고, '상태' · '폴더' · '반복' · '즐겨찾기' 열이 있으면 같이 채워요. 원래 있던 행은 건드리지 않아요.</p>
           </details>
           <div class="notion-actions"><span id="notionFormError" class="form-error" role="alert"></span><button id="notionConnectBtn" type="button" class="btn btn-primary">연결</button></div>
         </div>
