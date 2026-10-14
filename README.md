@@ -1,6 +1,10 @@
-# Desktop Calendar Memo v1.6.1
+# Desktop Calendar Memo v1.6.2
 
 Apple 메모 앱 느낌의 오프라인 Windows · 맥 캘린더 + 메모 (Electron).
+
+## v1.6.2 변경 사항
+
+- Notion 에 접속하지 못했을 때 원인을 구분해서 알려 줍니다(인터넷 끊김 / 회사 · 학교 네트워크나 보안 프로그램의 차단 / 그 밖의 오류, 괄호 안에 원인 코드).
 
 ## v1.6.1 변경 사항
 
@@ -114,7 +118,7 @@ Windows: 새 버전이 있으면 백그라운드로 받아서 알림 + 앱 안 �
 1. `release-notes.md` 에 바뀐 점 적기 (앱의 업데이트 안내 창에 그대로 보입니다)
 2. 버전 올리고 태그 푸시
    ```
-   npm version 1.6.2        # package.json 버전 변경 + 커밋 + v1.6.2 태그
+   npm version 1.6.3        # package.json 버전 변경 + 커밋 + v1.6.3 태그
    git push --follow-tags
    ```
    (태그 대신 GitHub 의 **Actions → Release → Run workflow** 버튼을 눌러도 됩니다.
@@ -132,6 +136,6 @@ Windows: 새 버전이 있으면 백그라운드로 받아서 알림 + 앱 안 �
 
 ## 최종 설치 프로그램 만들기 (내 PC 에서만)
 인터넷 연결 상태에서 `make_installer.bat`을 실행하면 `dist` 폴더에
-`DesktopCalendarMemo_v1.6.1.exe`가 생성되도록 구성되어 있습니다.
+`DesktopCalendarMemo_v1.6.2.exe`가 생성되도록 구성되어 있습니다.
 
 최종 설치 프로그램은 Electron/필요 리소스를 포함하므로 사용자가 Node.js나 npm을 설치할 필요가 없습니다.

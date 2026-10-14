@@ -104,9 +104,18 @@ function friendlyError(e) {
     if (e.status === 401) return '연결 키가 올바르지 않아요. Notion 통합 화면에서 키를 다시 복사해 주세요.';
     if (e.status === 404 || e.code === 'object_not_found') return '데이터베이스를 찾지 못했어요. 데이터베이스 오른쪽 위 ⋯ → 연결에서 앱 통합을 추가했는지 확인해 주세요.';
     if (e.status === 403) return '이 데이터베이스에 쓸 권한이 없어요. 통합의 기능 설정에서 "콘텐츠 입력/업데이트"를 켜 주세요.';
-    return e.message;
+    return `Notion 이 요청을 거절했어요: ${e.message}`;
   }
-  return '인터넷 연결을 확인해 주세요.';
+  // 접속 자체가 안 된 경우: 어떤 이유인지 구분해서 알려 줍니다(괄호 안은 원인 코드).
+  const detail = String((e && (e.cause?.message || e.message)) || e);
+  const code = (detail.match(/net::(ERR_[A-Z_]+)/) || [])[1];
+  if (/^ERR_(INTERNET_DISCONNECTED|NAME_NOT_RESOLVED|NETWORK_CHANGED|ADDRESS_UNREACHABLE|TIMED_OUT|CONNECTION_TIMED_OUT)$/.test(code || '')) {
+    return `인터넷에 연결되어 있지 않은 것 같아요. 연결되면 자동으로 다시 보내요. (${code})`;
+  }
+  if (code) {
+    return `이 컴퓨터에서 Notion 서버(api.notion.com)에 접속하지 못했어요. 회사 · 학교 네트워크나 보안 프로그램이 막고 있을 수 있어요. 다른 네트워크(예: 휴대폰 핫스팟)에서 시도해 보세요. (${code})`;
+  }
+  return `Notion 으로 보내는 중 문제가 생겼어요. (${detail.slice(0, 160)})`;
 }
 
 function createNotionSync({ userData, loadSettings, saveSettings, loadData, onStatus }) {
@@ -326,4 +335,4 @@ function createNotionSync({ userData, loadSettings, saveSettings, loadData, onSt
   return { schedule, connect, disconnect, getStatus, syncNow: () => { schedule(0); return getStatus(); } };
 }
 
-module.exports = { createNotionSync, parseDatabaseId, notionDate, blocksFromMarkdown, richText, loadMarkdown };
+module.exports = { friendlyError, createNotionSync, parseDatabaseId, notionDate, blocksFromMarkdown, richText, loadMarkdown };

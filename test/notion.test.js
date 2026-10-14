@@ -64,7 +64,7 @@ Module._load = function (req, ...rest) {
   if (req === 'electron') return { net: { fetch: fakeFetch }, safeStorage: { isEncryptionAvailable: () => false } };
   return origLoad.call(this, req, ...rest);
 };
-const { createNotionSync, notionDate, parseDatabaseId } = require('../notion-sync');
+const { createNotionSync, notionDate, parseDatabaseId, friendlyError } = require('../notion-sync');
 
 const results = [];
 const check = (n, g, e) => { const ok = JSON.stringify(g) === JSON.stringify(e); results.push(ok); console.log((ok ? 'PASS ' : 'FAIL ') + n + (ok ? '' : `\n  got: ${JSON.stringify(g)}\n  exp: ${JSON.stringify(e)}`)); };
@@ -167,6 +167,12 @@ const check = (n, g, e) => { const ok = JSON.stringify(g) === JSON.stringify(e);
   done = synced(); await blank.connect('ntn_good', blankDb.id); await done;
   check('blank db: only date column added', Object.keys(blankDb.properties).sort(), ['Name', '날짜'].sort());
   check('blank db: page written', Object.values(pages).filter(p => p.parent === blankDb.id).map(p => [p.properties.Name.title[0].text.content, p.properties['날짜'].date.start]), [['하나', '2026-10-17']]);
+
+  // 접속 실패 문구: 원인별로 구분
+  const netErr = c => Object.assign(new TypeError('fetch failed'), { cause: new Error(`net::${c}`) });
+  check('offline message', friendlyError(netErr('ERR_INTERNET_DISCONNECTED')).startsWith('인터넷에 연결되어 있지 않은'), true);
+  check('blocked message', friendlyError(netErr('ERR_CONNECTION_RESET')).includes('막고 있을 수 있어요. 다른 네트워크') && friendlyError(netErr('ERR_CONNECTION_RESET')).endsWith('(ERR_CONNECTION_RESET)'), true);
+  check('code bug not shown as network', friendlyError(new TypeError('x is undefined')), 'Notion 으로 보내는 중 문제가 생겼어요. (x is undefined)');
 
   // 날짜 변환 단독
   check('end before start dropped', notionDate({ startDate: '2026-01-01', startTime: '10:00', endTime: '09:00' }).end, null);
